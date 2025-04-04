@@ -1,0 +1,102 @@
+# Great Expectations Configuration
+great_expectations:
+  # Data Context Directory
+  context_root_dir: "data/great_expectations"
+  
+  # Validation results and documentation
+  validation_results_dir: "data/great_expectations/validations"
+  documentation_site_dir: "data/great_expectations/docs"
+  
+  # Data Sources
+  data_sources:
+    # Kafka source for streaming data
+    kafka:
+      class_name: "KafkaStreamingBatchData"
+      module_name: "src.validation.custom_datasources"
+      
+    # Spark source for batch data
+    spark:
+      class_name: "SparkDFDataset"
+      
+    # PostgreSQL source for metadata
+    postgres:
+      class_name: "SqlAlchemyDataset"
+      
+  # Expectations Suite Configuration
+  expectation_suites:
+    # Transaction data expectations
+    transactions:
+      name: "transaction_data_quality"
+      expectations:
+        - column: "transaction_id"
+          expectation_type: "expect_column_values_to_not_be_null"
+        - column: "transaction_id"
+          expectation_type: "expect_column_values_to_be_unique"
+        - column: "amount"
+          expectation_type: "expect_column_values_to_be_between"
+          min_value: 0.01
+          max_value: 1000000.00
+        - column: "transaction_type"
+          expectation_type: "expect_column_values_to_be_in_set"
+          value_set: ["deposit", "withdrawal", "transfer", "payment", "refund"]
+        - column: "timestamp"
+          expectation_type: "expect_column_values_to_be_dateutil_parseable"
+        - column: "account_id"
+          expectation_type: "expect_column_values_to_not_be_null"
+          
+    # Account data expectations
+    accounts:
+      name: "account_data_quality"
+      expectations:
+        - column: "account_id"
+          expectation_type: "expect_column_values_to_not_be_null"
+        - column: "account_id"
+          expectation_type: "expect_column_values_to_be_unique"
+        - column: "account_type"
+          expectation_type: "expect_column_values_to_be_in_set"
+          value_set: ["checking", "savings", "credit", "loan", "investment"]
+        - column: "customer_id"
+          expectation_type: "expect_column_values_to_not_be_null"
+          
+  # Validation Operators
+  validation_operators:
+    default:
+      class_name: "ActionListValidationOperator"
+      action_list:
+        - name: "store_validation_result"
+          action:
+            class_name: "StoreValidationResultAction"
+        - name: "store_evaluation_parameters"
+          action:
+            class_name: "StoreEvaluationParametersAction"
+        - name: "update_data_docs"
+          action:
+            class_name: "UpdateDataDocsAction"
+        - name: "send_slack_notification"
+          action:
+            class_name: "SlackNotificationAction"
+            # Uncomment and configure for Slack notifications
+            # slack_webhook: "https://hooks.slack.com/services/your/webhook/url"
+            # notify_on: "failure"
+            
+  # Checkpoints for automated validation
+  checkpoints:
+    transaction_streaming_checkpoint:
+      class_name: "SimpleCheckpoint"
+      validation_operator_name: "default"
+      batches:
+        - batch_kwargs:
+            topic: "banking.transactions.raw"
+            max.poll.records: 1000
+          expectation_suite_names:
+            - "transaction_data_quality"
+            
+    transaction_batch_checkpoint:
+      class_name: "SimpleCheckpoint"
+      validation_operator_name: "default"
+      batches:
+        - batch_kwargs:
+            table: "transactions"
+            data_asset_name: "transactions_table"
+          expectation_suite_names:
+            - "transaction_data_quality" 

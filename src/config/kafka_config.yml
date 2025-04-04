@@ -1,0 +1,54 @@
+# Kafka Broker Configuration
+kafka:
+  bootstrap_servers: "localhost:9092"
+  client_id: "banking_etl_client"
+  security:
+    enabled: false
+    # Uncomment below for security configuration
+    # protocol: "SASL_SSL"
+    # sasl_mechanism: "PLAIN"
+    # username: "kafka_user"
+    # password: "kafka_password"
+
+# Topic Configuration
+topics:
+  # Input topics for different data sources
+  input:
+    transactions: "banking.transactions.raw"
+    accounts: "banking.accounts.raw"
+    customers: "banking.customers.raw"
+    
+  # Output topics for processed data
+  output:
+    validated_transactions: "banking.transactions.validated"
+    enriched_transactions: "banking.transactions.enriched"
+    alerts: "banking.alerts"
+    
+  # Internal topics for processing
+  internal:
+    dead_letter: "banking.deadletter"
+    retry: "banking.retry"
+
+# Producer Configuration
+producer:
+  acks: "all"
+  retries: 3
+  batch_size: 16384
+  linger_ms: 10
+  compression_type: "snappy"
+  
+# Consumer Configuration
+consumer:
+  group_id: "banking_etl_group"
+  auto_offset_reset: "earliest"
+  enable_auto_commit: true
+  auto_commit_interval_ms: 5000
+  session_timeout_ms: 30000
+  max_poll_records: 500
+  
+# Stream Configuration
+stream:
+  processing_guarantee: "at_least_once"
+  num_stream_threads: 4
+  commit_interval_ms: 10000
+  replication_factor: 3 

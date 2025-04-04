@@ -1,0 +1,74 @@
+# Spark Application Configuration
+spark:
+  app_name: "BankingTransactionETL"
+  master: "local[*]"  # For production: "spark://master:7077"
+  
+  # Executor Configuration
+  executor:
+    memory: "2g"
+    instances: 2
+    cores: 2
+  
+  # Driver Configuration
+  driver:
+    memory: "2g"
+    max_result_size: "1g"
+  
+  # General Configuration
+  config:
+    spark.sql.shuffle.partitions: 10
+    spark.default.parallelism: 10
+    spark.serializer: "org.apache.spark.serializer.KryoSerializer"
+    spark.sql.adaptive.enabled: true
+    spark.sql.adaptive.coalescePartitions.enabled: true
+    spark.sql.adaptive.skewJoin.enabled: true
+    spark.sql.catalogImplementation: "hive"
+    
+# Streaming Configuration
+streaming:
+  # Batch interval in seconds
+  batch_interval: 10
+  
+  # Checkpoint directory
+  checkpoint_dir: "data/checkpoints"
+  
+  # Window configurations
+  window_duration: 60  # seconds
+  sliding_interval: 30  # seconds
+  
+  # Watermark for handling late data
+  watermark_delay: 30  # seconds
+  
+  # Output mode: "append", "complete", or "update"
+  output_mode: "append"
+  
+  # Trigger processing
+  trigger_type: "ProcessingTime"
+  trigger_interval: "10 seconds"  # Only used for ProcessingTime trigger
+  
+# Hive Configuration
+hive:
+  metastore_uri: "thrift://localhost:9083"
+  warehouse_dir: "data/warehouse"
+  
+  # Default database for banking data
+  database: "banking_db"
+  
+  # Tables
+  tables:
+    transactions: "transactions"
+    accounts: "accounts" 
+    customers: "customers"
+    transaction_summary: "transaction_summary"
+    
+  # Partitioning
+  partitioning:
+    transactions:
+      columns: ["year", "month", "day"]
+    transaction_summary:
+      columns: ["year", "month"]
+      
+# HDFS Configuration
+hdfs:
+  uri: "hdfs://localhost:9000"
+  replication_factor: 3 
