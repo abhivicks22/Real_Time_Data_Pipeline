@@ -107,7 +107,7 @@ The pipeline includes monitoring for:
 - Data throughput and latency
 - Processing errors and exceptions
 - Data quality metrics
-- System resource utilization
+- System resource utilization.
 
 ## License
 
